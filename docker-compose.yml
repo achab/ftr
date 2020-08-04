@@ -1,0 +1,64 @@
+version: '3'
+services:
+  app:
+    container_name: ftr-api
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=kyc
+      - POSTGRES_PORT=5432
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+      - LOG_PRETTY_PRINT=true
+    volumes:
+      - .:/home/node/app
+    command: npm run start:debug
+    ports:
+      - 8888:3000
+    networks:
+      - ftr_network
+
+  pgadmin:
+    container_name: pg-ftr
+    image: dpage/pgadmin4
+    links:
+      - postgres
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: pwdpwd
+    volumes:
+      - pgadmin:/root/.pgadmin
+    ports:
+      - '8880:80'
+    networks:
+      - ftr_network
+
+  postgres:
+    container_name: postgres-ftr
+    image: postgres:11.8
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=kyc
+    ports:
+      - '5432:5432'
+    networks:
+      - ftr_network
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+networks:
+  ftr_network:
+    driver: bridge
+
+volumes:
+  db-data:
+    driver: local
+  pgadmin:
